@@ -1,0 +1,30 @@
+{
+  "name": "xin-connect",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Ganesha <reekoheek@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "webpack-dev-server",
+    "build": "webpack"
+  },
+  "dependencies": {
+    "xin": "xinix-technology/xin#next"
+  },
+  "devDependencies": {
+    "babel-core": "^6.21.0",
+    "babel-loader": "^6.2.10",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-stage-3": "^6.17.0",
+    "chai": "^3.5.0",
+    "eslint": "^3.12.2",
+    "eslint-config-standard": "^6.2.1",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^2.0.1",
+    "mocha": "^3.2.0",
+    "mocha-loader": "webpack/mocha-loader#master",
+    "sinon": "next",
+    "webpack": "beta",
+    "webpack-dev-server": "beta"
+  }
+}
