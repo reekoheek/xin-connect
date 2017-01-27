@@ -22,7 +22,6 @@ module.exports = function (env) {
       hot: false,
       host: '0.0.0.0',
       port: 8080,
-      // contentBase: (() => (env.cordova ? ['./www', './platforms/android/platform_www'] : [ './www' ]))(),
     },
     plugins: [
       new webpack.optimize.CommonsChunkPlugin({
