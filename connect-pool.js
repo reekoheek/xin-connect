@@ -57,6 +57,10 @@ class ConnectPool extends xin.Component {
         value: window.location.origin,
         observer: '_baseUrlChanged(baseUrl)',
       },
+
+      headers: {
+        type: Array,
+      },
     });
   }
 
@@ -134,7 +138,7 @@ class ConnectPool extends xin.Component {
     });
   }
 
-  async fetch (url, options) {
+  async fetch (url, options = {}) {
     let status = this.status;
 
     if (status === IS_OFFLINE) {
@@ -145,10 +149,14 @@ class ConnectPool extends xin.Component {
       throw new Error('Connection error');
     }
 
+    const headers = Object.assign({}, this.headers, options.headers);
+
+    options = Object.assign(options, { headers });
+
     try {
-      return await window.fetch(this.getUrl(url));
+      return await window.fetch(this.getUrl(url), options);
     } catch (err) {
-      this.ping();
+      try { this.ping(); } catch (err) {}
       throw err;
     }
   }
