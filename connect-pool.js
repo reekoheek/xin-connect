@@ -162,6 +162,9 @@ class ConnectPool extends xin.Component {
   }
 
   getUrl (url) {
+    if (url instanceof window.URL) {
+      return url;
+    }
     return url.startsWith('/') ? (this._baseUrl + url) : new window.URL(url, this._baseUrl).href;
   }
 
