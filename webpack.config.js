@@ -1,57 +1,78 @@
 const path = require('path');
-const webpack = require('webpack');
+const glob = require('glob');
 
-module.exports = function (env) {
-  console.log(env);
+module.exports = function (env = {}) {
+  let { port = 8080, minify = false } = env;
+  console.error('env=', env);
 
   return {
-    entry: {
-      // 'connect-online': './connect-online.js',
-
-      'connect-online.test': './test/connect-online.test.js',
-      'connect-fetch.test': './test/connect-fetch.test.js',
-    },
+    entry: getEntries(),
     output: {
       path: path.join(__dirname, 'dist'),
-      filename: '[name].js',
+      filename: `[name]${minify ? '.min' : ''}.js`,
     },
     devtool: 'source-map',
-    devServer: {
-      historyApiFallback: false,
-      inline: false,
-      hot: false,
-      host: '0.0.0.0',
-      port: 8080,
-    },
-    plugins: [
-      new webpack.optimize.CommonsChunkPlugin({
-        children: true,
-        async: true,
-      }),
-    ],
+    plugins: getPlugins(env),
     module: {
-      loaders: [
-        {
-          test: /\.test.js$/,
-          exclude: /node_modules/,
-          loader: require.resolve('mocha-loader'),
-        },
+      rules: [
         {
           test: /\.js$/,
           exclude: /node_modules/,
-          loader: require.resolve('babel-loader'),
-          query: {
-            babelrc: false,
-            plugins: [
-              require.resolve('babel-plugin-transform-async-to-generator'),
-            ],
-            // presets: [
-            //   require.resolve('babel-preset-es2015'), require.resolve('babel-preset-stage-3'),
-            // ],
-            cacheDirectory: true,
-          },
+          use: getBabelLoader(),
+        },
+        {
+          test: /\.js$/,
+          include: /node_modules\/(template-binding|xin)/,
+          use: getBabelLoader(),
         },
       ],
     },
+    devServer: {
+      contentBase: path.join(__dirname, 'dist'),
+      compress: true,
+      port: port,
+    },
   };
 };
+
+function getBabelLoader () {
+  return {
+    loader: 'babel-loader',
+    options: {
+      babelrc: false,
+      plugins: [
+        require.resolve('babel-plugin-istanbul'),
+        // require.resolve('babel-plugin-__coverage__'),
+        // [ require.resolve('babel-plugin-__coverage__'), { 'ignore': 'node_modules' } ],
+      //   'babel-plugin-syntax-dynamic-import',
+      //   'babel-plugin-transform-async-to-generator',
+      ],
+      // presets: [
+      //   'babel-preset-es2015',
+      //   'babel-preset-stage-3',
+      // ],
+      cacheDirectory: true,
+    },
+  };
+}
+
+function getPlugins ({ minify = false } = {}) {
+  let plugins = [];
+
+  // if (minify) {
+  //   plugins.push(
+  //     new BabiliPlugin()
+  //   );
+  // }
+
+  return plugins;
+}
+
+// FIXME please add component tests
+function getEntries () {
+  const entries = {};
+
+  glob.sync('./test/**/*-test.js').forEach(test => (entries[test.match(/\/(test\/.*).js$/)[1]] = test));
+
+  return entries;
+}

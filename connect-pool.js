@@ -4,19 +4,29 @@ const IS_ONLINE = 1;
 const IS_OFFLINE = 0;
 const IS_ERROR = -1;
 
-const pools = [];
+let globalPools = [];
+let globalNavigator = window.navigator;
 
 window.addEventListener('online', () => {
-  pools.forEach(pool => pool.ping());
-});
+  globalPools.forEach(pool => pool.ping());
+}, true);
 
 window.addEventListener('offline', () => {
-  pools.forEach(pool => pool.set('status', 0));
-});
+  globalPools.forEach(pool => pool.set('status', 0));
+}, true);
 
 class ConnectPool extends xin.Component {
   static get default () {
-    return pools[0];
+    return globalPools[0];
+  }
+
+  static get navigator () {
+    return globalNavigator;
+  }
+
+  static reset ({ navigator = window.navigator } = {}) {
+    globalNavigator = navigator;
+    globalPools = [];
   }
 
   get props () {
@@ -69,7 +79,7 @@ class ConnectPool extends xin.Component {
 
     this.set('ref', this);
 
-    pools.push(this);
+    globalPools.push(this);
 
     if (this.status === undefined) {
       this.status = IS_ONLINE;
@@ -81,9 +91,9 @@ class ConnectPool extends xin.Component {
   detached () {
     this.set('ref', null);
 
-    const index = pools.indexOf(this);
+    const index = globalPools.indexOf(this);
     if (index >= 0) {
-      pools.splice(index, 1);
+      globalPools.splice(index, 1);
     }
   }
 
@@ -175,7 +185,7 @@ class ConnectPool extends xin.Component {
       return await this.pingFn();
     }
 
-    if (!window.navigator.onLine) {
+    if (!globalNavigator.onLine) {
       return IS_OFFLINE;
     }
 
