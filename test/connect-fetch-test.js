@@ -1,5 +1,3 @@
-/* eslint-env mocha */
-
 // FIXME finish write tests
 
 // import { assert } from 'chai';

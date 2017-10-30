@@ -1,4 +1,4 @@
-import xin from 'xin';
+import { define, Component } from '@xinix/xin';
 
 const IS_ONLINE = 1;
 const IS_OFFLINE = 0;
@@ -15,7 +15,7 @@ window.addEventListener('offline', () => {
   globalPools.forEach(pool => pool.set('status', 0));
 }, true);
 
-class ConnectPool extends xin.Component {
+export class ConnectPool extends Component {
   static get default () {
     return globalPools[0];
   }
@@ -31,14 +31,8 @@ class ConnectPool extends xin.Component {
 
   get props () {
     return Object.assign({}, super.props, {
-      ref: {
-        type: Object,
-        readonly: true,
-        notify: true,
-      },
-
       status: {
-        type: String,
+        type: Number,
         readonly: true,
         notify: true,
         observer: '_statusChanged(status)',
@@ -69,28 +63,23 @@ class ConnectPool extends xin.Component {
       },
 
       headers: {
-        type: Array,
+        type: Object,
       },
     });
   }
 
-  attached () {
-    super.attached();
-
-    this.set('ref', this);
+  async attached () {
+    await super.attached();
 
     globalPools.push(this);
 
     if (this.status === undefined) {
-      this.status = IS_ONLINE;
       this.pingFlights = [];
-      this.ping();
+      await this.ping();
     }
   }
 
   detached () {
-    this.set('ref', null);
-
     const index = globalPools.indexOf(this);
     if (index >= 0) {
       globalPools.splice(index, 1);
@@ -98,7 +87,7 @@ class ConnectPool extends xin.Component {
   }
 
   _baseUrlChanged (baseUrl) {
-    this._baseUrl = new window.URL(baseUrl, window.location.origin).href;
+    this._baseUrl = (new window.URL(baseUrl, window.location.origin).href).replace(/\/+$/, '');
   }
 
   _statusChanged (status) {
@@ -124,17 +113,16 @@ class ConnectPool extends xin.Component {
     }
   }
 
-  async ping () {
+  ping () {
     if (this.pingFlights.length > 0) {
-      return await new Promise((resolve, reject) => this.pingFlights.push([ resolve, reject ]));
+      return new Promise((resolve, reject) => this.pingFlights.push([ resolve, reject ]));
     }
 
-    return await new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       this.pingFlights.push([ resolve, reject ]);
 
       try {
         const status = await this._ping();
-
         this._lastTimePinged = new Date();
 
         this.set('status', status);
@@ -171,18 +159,19 @@ class ConnectPool extends xin.Component {
     }
   }
 
-  getUrl (url) {
+  getUrl (url = '') {
     if (url instanceof window.URL) {
       return url;
     }
-    return url.startsWith('/') ? (this._baseUrl + url) : new window.URL(url, this._baseUrl).href;
+
+    return url.startsWith('/') ? ((this._baseUrl || '') + url) : new window.URL(url, this._baseUrl).href;
   }
 
   async _ping () {
-    console.log('Ping at', new Date());
+    console.info('Ping at', new Date());
 
     if (this.pingFn) {
-      return await this.pingFn();
+      return this.pingFn();
     }
 
     if (!globalNavigator.onLine) {
@@ -234,6 +223,4 @@ class ConnectPool extends xin.Component {
   }
 }
 
-xin.define('connect-pool', ConnectPool);
-
-export default ConnectPool;
+define('connect-pool', ConnectPool);

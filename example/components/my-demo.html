@@ -1,0 +1,29 @@
+<connect-pool id="pool" status="{{status}}"></connect-pool>
+
+
+<div>Status: <span>[[status]]</span></div>
+
+<div>
+  <h3>Fetch by pool</h3>
+  <a href="#" (click)="doPoolFetch(evt)">Fetch</a>
+  <div class="result">
+    <pre>[[poolFetchResult]]</pre>
+  </div>
+</div>
+
+<div>
+  <connect-fetch url="/index.js" value="{{ autoFetchResult }}"></connect-fetch>
+  <h3>Auto fetch by &lt;connect-fetch&gt;</h3>
+  <div class="result">
+    <pre>[[autoFetchResult]]</pre>
+      </div>
+  </div>
+
+<div>
+  <connect-fetch id="cfetch" url="/index.js"></connect-fetch>
+  <h3>Fetch by &lt;connect-fetch&gt;</h3>
+  <a href="#" (click)="doFetchFetch(evt)">Fetch</a>
+  <div class="result">
+      <pre>[[fetchFetchResult]]</pre>
+    </div>
+</div>

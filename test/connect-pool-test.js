@@ -1,9 +1,7 @@
-/* eslint-env mocha */
-
 import assert from 'assert';
-import Fixture from 'xin/components/fixture';
+import { Fixture } from '@xinix/xin/components/fixture';
 
-import ConnectPool from '../connect-pool';
+import { ConnectPool } from '../connect-pool';
 
 describe('ConnectPool', () => {
   let navigator;

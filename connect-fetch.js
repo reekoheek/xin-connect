@@ -1,7 +1,7 @@
-import xin from 'xin';
-import ConnectPool from './connect-pool';
+import { define, Component } from '@xinix/xin';
+import { ConnectPool } from './connect-pool';
 
-class ConnectFetch extends xin.Component {
+export class ConnectFetch extends Component {
   get props () {
     return Object.assign({}, super.props, {
       pool: {
@@ -39,7 +39,7 @@ class ConnectFetch extends xin.Component {
 
   async fetch () {
     if (!this.url) {
-      return;
+      throw new Error('Cannot fetch unknown url');
     }
 
     try {
@@ -65,6 +65,4 @@ class ConnectFetch extends xin.Component {
   }
 }
 
-xin.define('connect-fetch', ConnectFetch);
-
-export default ConnectFetch;
+define('connect-fetch', ConnectFetch);

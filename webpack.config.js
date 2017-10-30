@@ -1,12 +1,16 @@
 const path = require('path');
-const glob = require('glob');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+// const glob = require('glob');
 
 module.exports = function (env = {}) {
-  let { port = 8080, minify = false } = env;
+  let { port = 8080, minify = false, mode = 'example' } = env;
   console.error('env=', env);
 
   return {
-    entry: getEntries(),
+    context: path.join(__dirname, `./${mode}`),
+    entry: {
+      index: './index.js',
+    },
     output: {
       path: path.join(__dirname, 'dist'),
       filename: `[name]${minify ? '.min' : ''}.js`,
@@ -16,13 +20,17 @@ module.exports = function (env = {}) {
     module: {
       rules: [
         {
-          test: /\.js$/,
-          exclude: /node_modules/,
-          use: getBabelLoader(),
+          test: /\.css$/,
+          // exclude: /node_modules/,
+          use: [ 'style-loader', 'css-loader' ],
+        },
+        {
+          test: /\.html$/,
+          use: 'html-loader',
         },
         {
           test: /\.js$/,
-          include: /node_modules\/(template-binding|xin)/,
+          exclude: /node_modules/,
           use: getBabelLoader(),
         },
       ],
@@ -41,23 +49,28 @@ function getBabelLoader () {
     options: {
       babelrc: false,
       plugins: [
-        require.resolve('babel-plugin-istanbul'),
+        // require.resolve('babel-plugin-istanbul'),
         // require.resolve('babel-plugin-__coverage__'),
         // [ require.resolve('babel-plugin-__coverage__'), { 'ignore': 'node_modules' } ],
-      //   'babel-plugin-syntax-dynamic-import',
-      //   'babel-plugin-transform-async-to-generator',
+        // 'babel-plugin-syntax-dynamic-import',
+        // 'babel-plugin-transform-async-to-generator',
       ],
-      // presets: [
+      presets: [
       //   'babel-preset-es2015',
       //   'babel-preset-stage-3',
-      // ],
+      ],
       cacheDirectory: true,
     },
   };
 }
 
 function getPlugins ({ minify = false } = {}) {
-  let plugins = [];
+  let plugins = [
+    new HtmlWebpackPlugin({
+      filename: 'index.html',
+      template: 'index.html',
+    }),
+  ];
 
   // if (minify) {
   //   plugins.push(
@@ -68,11 +81,11 @@ function getPlugins ({ minify = false } = {}) {
   return plugins;
 }
 
-// FIXME please add component tests
-function getEntries () {
-  const entries = {};
+// // FIXME please add component tests
+// function getEntries () {
+//   const entries = {};
 
-  glob.sync('./test/**/*-test.js').forEach(test => (entries[test.match(/\/(test\/.*).js$/)[1]] = test));
+//   glob.sync('./test/**/*.test.js').forEach(test => (entries[test.match(/\/(test\/.*).js$/)[1]] = test));
 
-  return entries;
-}
+//   return entries;
+// }
