@@ -154,7 +154,11 @@ export class ConnectPool extends Component {
     try {
       return await window.fetch(this.getUrl(url), options);
     } catch (err) {
-      try { this.ping(); } catch (err) {}
+      try {
+        this.ping();
+      } catch (err) {
+        // noop
+      }
       throw err;
     }
   }

@@ -1,6 +1,8 @@
 // Karma configuration
+// Generated on Wed Apr 04 2018 09:55:19 GMT+0700 (WIB)
+const path = require('path');
 
-const webpackConfig = require('./webpack.config')();
+// process.env.CHROME_BIN = require('puppeteer').executablePath();
 
 module.exports = function (config) {
   config.set({
@@ -14,8 +16,7 @@ module.exports = function (config) {
 
     // list of files / patterns to load in the browser
     files: [
-      { pattern: 'test/*-test.js', watched: false },
-      { pattern: 'test/**/*-test.js', watched: false },
+      { pattern: 'test/**/*.test.js', watched: false }
     ],
 
     // list of files to exclude
@@ -25,29 +26,16 @@ module.exports = function (config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'test/*-test.js': ['webpack', 'sourcemap'],
-      'test/**/*-test.js': ['webpack', 'sourcemap'],
-    },
-
-    webpack: {
-      devtool: 'inline-source-map',
-      // resolve: webpackConfig.resolve,
-      // resolveLoader: webpackConfig.resolveLoader,
-      plugins: webpackConfig.plugins,
-      module: {
-        rules: webpackConfig.module.rules,
-      },
-      node: webpackConfig.node,
-      performance: false,
+      'test/**/*.test.js': ['webpack'],
     },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: [ 'progress', 'coverage' ],
+    reporters: ['spec', 'coverage'],
 
     // web server port
-    // port: 9876,
+    port: 9876,
 
     // enable / disable colors in the output (reporters and logs)
     colors: true,
@@ -61,31 +49,64 @@ module.exports = function (config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['ChromeCanary'],
+    browsers: [ 'ChromeCanary' ],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
-    singleRun: false,
+    singleRun: true,
 
     // Concurrency level
     // how many browser should be started simultaneous
-    concurrency: Infinity,
+    concurrency: 3, // Infinity,
 
-    // client: {
-    //   mocha: {
-    //     timeout: 5000,
-    //   },
-    // },
+    coverageReporter: {
+      dir: 'coverage/',
+      reporters: [
+        { type: 'html' },
+        // { type: 'text' },
+        // { type: 'text-summary' },
+      ],
+    },
+
+    webpack: {
+      // webpack configuration
+      mode: 'development',
+      devtool: 'inline-source-map',
+      module: {
+        rules: [
+          {
+            test: /\.js$/,
+            use: {
+              loader: 'istanbul-instrumenter-loader',
+              options: { esModules: true },
+            },
+            exclude: /node_modules|\.test\.js$/,
+          },
+          {
+            test: /\.s?css$/,
+            use: [ 'style-loader', 'css-loader', 'sass-loader' ],
+          },
+          {
+            test: /\.html$/,
+            use: [ 'html-loader' ],
+          },
+        ],
+      },
+    },
 
     webpackMiddleware: {
       // webpack-dev-middleware configuration
-      // i. e.
-      stats: 'errors-only',
+      noInfo: true,
     },
 
-    coverageReporter: {
-      type: 'html',
-      dir: 'coverage/',
-    },
+    plugins: [
+      require('karma-webpack'),
+      require('karma-mocha'),
+      require('karma-coverage'),
+      require('karma-chrome-launcher'),
+      // require('karma-safari-launcher'),
+      // require('karma-firefox-launcher'),
+      require('karma-spec-reporter'),
+    ],
   });
 };

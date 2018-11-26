@@ -14,13 +14,17 @@ class MyDemo extends Component {
       status: {
         type: Number,
       },
+      dataUrl: {
+        type: String,
+        value: '/mock/data.json',
+      },
     });
   }
 
   async doPoolFetch (evt) {
     evt.preventDefault();
 
-    let res = await this.$.pool.fetch('/index.js');
+    let res = await this.$.pool.fetch(this.dataUrl);
     this.set('poolFetchResult', await res.text());
   }
 

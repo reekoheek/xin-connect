@@ -17,7 +17,7 @@ describe('ConnectPool', () => {
 
   describe('.default', () => {
     it('return ConnectPool instance when created', async () => {
-      let fixture = Fixture.create('<connect-pool />');
+      let fixture = await Fixture.create('<connect-pool />');
       await fixture.waitConnected();
 
       assert(ConnectPool.default);
@@ -32,111 +32,99 @@ describe('ConnectPool', () => {
 
   describe('.navigator', () => {
     it('return window.navigator', () => {
-      assert.equal(ConnectPool.navigator, navigator);
+      assert.strictEqual(ConnectPool.navigator, navigator);
 
       ConnectPool.reset();
 
-      assert.equal(ConnectPool.navigator, window.navigator);
+      assert.strictEqual(ConnectPool.navigator, window.navigator);
     });
   });
 
   describe('#status', () => {
-    let fixture;
-
-    beforeEach(async () => {
-      fixture = Fixture.create(`
+    it('change to 1 when navigator.onLine is true', async () => {
+      let fixture = await Fixture.create(`
         <connect-pool status="{{status}}"></connect-pool>
       `);
 
-      await fixture.waitConnected();
-    });
+      try {
+        await fixture.waitConnected();
 
-    afterEach(() => {
-      fixture.dispose();
-    });
+        assert.strictEqual(fixture.status, 0);
 
-    it('change to 1 when navigator.onLine is true', async () => {
-      assert.equal(fixture.status, 0);
+        navigator.onLine = true;
 
-      navigator.onLine = true;
+        await new Promise(resolve => setTimeout(resolve));
 
-      await new Promise(resolve => setTimeout(resolve));
+        assert.strictEqual(fixture.status, 1);
 
-      assert.equal(fixture.status, 1);
+        navigator.onLine = false;
 
-      navigator.onLine = false;
+        await new Promise(resolve => setTimeout(resolve));
 
-      await new Promise(resolve => setTimeout(resolve));
-
-      assert.equal(fixture.status, 0);
+        assert.strictEqual(fixture.status, 0);
+      } finally {
+        fixture.dispose();
+      }
     });
   });
 
-  // FIXME finish write tests
-  // describe('(status-change)', () => {
-  //   let fixture;
-  //
-  //   beforeEach(async () => {
-  //     fixture = Fixture.create(`
-  //       <connect-pool navigator="[[navigator]]" (status-change)="_onlineChanged(evt)"></connect-pool>
-  //     `);
-  //
-  //     fixture.all({
-  //       'navigator': new NavigatorMock(false),
-  //       '_onlineChanged': (evt) => {},
-  //     });
-  //
-  //     await fixture.promised('status-change');
-  //   });
-  //
-  //   afterEach(() => {
-  //     fixture.dispose();
-  //   });
-  //
-  //   it('fire event with detail { online: true }', async () => {
-  //     fixture.navigator.onLine = false;
-  //
-  //     await new Promise(resolve => setTimeout(resolve));
-  //
-  //     let spy = fixture._onlineChanged = sinon.spy();
-  //
-  //     fixture.navigator.onLine = true;
-  //
-  //     await new Promise(resolve => setTimeout(resolve));
-  //
-  //     sinon.assert.calledWithMatch(spy, { detail: { online: true } });
-  //   });
-  //
-  //   it('fire event with detail { online: false }', async () => {
-  //     fixture.navigator.onLine = true;
-  //
-  //     await new Promise(resolve => setTimeout(resolve));
-  //
-  //     let spy = fixture._onlineChanged = sinon.spy();
-  //
-  //     fixture.navigator.onLine = false;
-  //
-  //     await new Promise(resolve => setTimeout(resolve));
-  //
-  //     sinon.assert.calledWithMatch(spy, { detail: { online: false } });
-  //   });
-  //
-  //   it('fire only one event for the same changes', async () => {
-  //     fixture.navigator.onLine = true;
-  //
-  //     await new Promise(resolve => setTimeout(resolve));
-  //
-  //     let spy = fixture._onlineChanged = sinon.spy();
-  //
-  //     fixture.navigator.onLine = false;
-  //     fixture.navigator.onLine = false;
-  //
-  //     await new Promise(resolve => setTimeout(resolve));
-  //
-  //     sinon.assert.calledOnce(spy);
-  //   });
-  // });
-  //
+  describe('(status-change)', () => {
+    afterEach(() => {
+      ConnectPool.reset();
+    });
+
+    it('fire event', async () => {
+      let navigator = new NavigatorMock();
+      ConnectPool.reset({ navigator });
+
+      let status;
+      let fixture = await Fixture.create(`
+        <connect-pool (status-change)="_onlineChanged(evt)"></connect-pool>
+      `, { '_onlineChanged': evt => (status = evt.detail.status) });
+
+      try {
+        await fixture.waitConnected();
+        assert.strictEqual(status, 0);
+
+        navigator.onLine = true;
+        await new Promise(resolve => setTimeout(resolve));
+        assert.strictEqual(status, 1);
+
+        navigator.onLine = false;
+        await new Promise(resolve => setTimeout(resolve));
+        assert.strictEqual(status, 0);
+      } finally {
+        fixture.dispose();
+      }
+    });
+  });
+
+  describe('#fetch()', () => {
+    beforeEach(() => {
+      ConnectPool.reset();
+    });
+
+    afterEach(() => {
+      ConnectPool.reset();
+    });
+
+    it('response 200', async () => {
+      let fixture = await Fixture.create(`
+        <connect-pool id="pool"></connect-pool>
+      `);
+
+      try {
+        await fixture.waitConnected();
+
+        let resp = await fixture.$.pool.fetch('/');
+
+        assert.strictEqual(resp.status, 200);
+      } finally {
+        fixture.dispose();
+      }
+    });
+  });
+
   // describe('#ping()', () => {
   //   let fixture;
   //
